@@ -4,8 +4,8 @@ import "time"
 
 type Event struct {
 	Time       time.Time
-	ID         int
 	PlayerID   int
+	Type       EventType
 	ExtraParam string
 }
 
