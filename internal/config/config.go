@@ -34,7 +34,6 @@ func MustLoadByPath(configPath string) *Config {
 	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
 		panic("failed to read config: " + err.Error())
 	}
-
 	return &cfg
 }
 

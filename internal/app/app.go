@@ -9,6 +9,11 @@ type App struct {
 }
 
 func New(configPath string) *App {
+	var cfg *config.Config
+	cfg = config.MustLoad(configPath)
 
-	return &App{}
+	return &App{
+		config: cfg,
+	}
+
 }
