@@ -1,15 +1,14 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type Report struct {
-	State string
-
-	PlayerID int
-
+	State        FinalState
+	PlayerID     int
 	TotalTime    time.Duration
 	AvgFloorTime time.Duration
 	BossTime     time.Duration
-
-	HP int
+	FinalHealth  int
 }
