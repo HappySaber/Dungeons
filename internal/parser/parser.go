@@ -1,85 +1,58 @@
 package parser
 
 import (
-	"bufio"
+	"dungeon/internal/domain/models"
 	"fmt"
-	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
-
-	"dungeon/internal/domain/models"
 )
 
-const clockLayout = "15:04:05"
-
-func ParseEvents(path string) ([]models.Event, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	var events []models.Event
-
-	scanner := bufio.NewScanner(file)
-
-	for scanner.Scan() {
-		line := scanner.Text()
-
-		event, err := ParseEventLine(line)
-		if err != nil {
-			return nil, err
-		}
-
-		events = append(events, event)
-	}
-
-	return events, scanner.Err()
+type EventParser struct {
+	regex *regexp.Regexp
 }
 
-func ParseEventLine(line string) (models.Event, error) {
-	parts := strings.Split(line, " ")
+func New() *EventParser {
+	pattern := `^\[(\d{2}:\d{2}:\d{2})\]\s+(\d+)\s+(\d+)(?:\s+(.+))?$`
 
-	if len(parts) < 3 {
-		return models.Event{}, fmt.Errorf("invalid event")
+	return &EventParser{
+		regex: regexp.MustCompile(pattern),
 	}
-
-	timeStr := strings.Trim(parts[0], "[]")
-
-	t, err := ParseClock(timeStr)
-	if err != nil {
-		return models.Event{}, err
-	}
-
-	playerID, err := strconv.Atoi(parts[1])
-	if err != nil {
-		return models.Event{}, err
-	}
-
-	eventID, err := strconv.Atoi(parts[2])
-	if err != nil {
-		return models.Event{}, err
-	}
-
-	extra := ""
-
-	if len(parts) > 3 {
-		extra = strings.Join(parts[3:], " ")
-	}
-
-	return models.Event{
-		Time:       t,
-		PlayerID:   playerID,
-		ID:         eventID,
-		ExtraParam: extra,
-	}, nil
 }
 
-func ParseClock(value string) (time.Time, error) {
-	return time.Parse(clockLayout, value)
-}
+func (p *EventParser) Parse(line string) (*models.Event, error) {
+	line = strings.TrimSpace(line)
 
-func FormatClock(t time.Time) string {
-	return t.Format(clockLayout)
+	matches := p.regex.FindStringSubmatch(line)
+	if matches == nil {
+		return nil, fmt.Errorf("invalid event format: %s", line)
+	}
+
+	eventTime, err := time.Parse("15:04:05", matches[1])
+	if err != nil {
+		return nil, fmt.Errorf("invalid time format %q: %w", matches[1], err)
+	}
+
+	playerID, err := strconv.Atoi(matches[2])
+	if err != nil {
+		return nil, fmt.Errorf("invalid player ID %q: %w", matches[2], err)
+	}
+
+	eventTypeNum, err := strconv.Atoi(matches[3])
+	if err != nil {
+		return nil, fmt.Errorf("invalid event type %q: %w", matches[3], err)
+	}
+
+	eventType := models.EventType(eventTypeNum)
+	if !eventType.IsValid() {
+		return nil, fmt.Errorf("unknown event type: %d", eventTypeNum)
+	}
+
+	extraParam := ""
+	if len(matches) > 4 && matches[4] != "" {
+		extraParam = strings.TrimSpace(matches[4])
+	}
+
+	return models.NewEvent(eventTime, playerID, eventType, extraParam), nil
 }
