@@ -1,15 +1,28 @@
 package main
 
 import (
-	"dungeon/internal/config"
-	"fmt"
+	"dungeon/internal/app"
+	"flag"
+	"log"
+	"os"
 )
 
 func main() {
-	cfg := config.MustLoad()
-	err := cfg.Validate()
-	if err != nil {
-		panic(err)
+
+	eventsPath := flag.String("events", "", "path to events file")
+	configPath := flag.String("config", "", "path to config file")
+	flag.Parse()
+
+	application := app.New(*configPath)
+
+	var err error
+	if *eventsPath != "" {
+		err = application.ProcessFile(*eventsPath)
+	} else {
+		err = application.ProcessReader(os.Stdin)
 	}
-	fmt.Println(cfg)
+
+	if err != nil {
+		log.Fatalf("Error executing: %v", err)
+	}
 }

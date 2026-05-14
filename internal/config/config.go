@@ -1,71 +1,59 @@
 package config
 
 import (
-	"flag"
+	"encoding/json"
 	"fmt"
 	"os"
 	"time"
-
-	"github.com/ilyakaznacheev/cleanenv"
 )
 
 type Config struct {
-	Floors   int `json:"Floors"`
-	Monsters int `json:"Monsters"`
-
+	Floors   int    `json:"Floors"`
+	Monsters int    `json:"Monsters"`
 	OpenAt   string `json:"OpenAt"`
 	Duration int    `json:"Duration"`
 }
 
-func MustLoad() *Config {
-	path := fetchConfigPath()
-	if path == "" {
-		panic("config path is empty")
+func Load(path string) (*Config, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("could not read config file: %w", err)
 	}
 
-	return MustLoadByPath(path)
-}
-
-func MustLoadByPath(configPath string) *Config {
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		panic("config file doens't exist: " + configPath)
-	}
 	var cfg Config
-	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
-		panic("failed to read config: " + err.Error())
-	}
-	return &cfg
-}
-
-func fetchConfigPath() string {
-	var res string
-
-	flag.StringVar(&res, "config", "", "path to config file")
-	flag.Parse()
-
-	if res == "" {
-		res = os.Getenv("CONFIG_PATH")
+	if err := json.Unmarshal(data, &cfg); err != nil {
+		return nil, fmt.Errorf("failed to parse JSON: %w", err)
 	}
 
-	return res
+	if err := cfg.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid configuration: %w", err)
+	}
+
+	return &cfg, nil
 }
 
 func (c *Config) Validate() error {
 	if c.Floors <= 0 {
-		return fmt.Errorf("floors must be positive")
+		return fmt.Errorf("floors must be > 0, got: %d", c.Floors)
 	}
-
-	if c.Monsters <= 0 {
-		return fmt.Errorf("monsters must be positive")
+	if c.Monsters < 0 {
+		return fmt.Errorf("monsters must be >= 0, got: %d", c.Monsters)
+	}
+	if c.Duration <= 0 {
+		return fmt.Errorf("duration must be > 0, got: %d", c.Duration)
 	}
 
 	if _, err := time.Parse("15:04:05", c.OpenAt); err != nil {
-		return fmt.Errorf("invalid OpenAt format")
-	}
-
-	if c.Duration <= 0 {
-		return fmt.Errorf("duration must be positive")
+		return fmt.Errorf("invalid format for OpenAt: %w", err)
 	}
 
 	return nil
+}
+
+func (c *Config) ParseOpenTime() (time.Time, error) {
+	return time.Parse("15:04:05", c.OpenAt)
+}
+
+func (c *Config) CalculateCloseTime(openTime time.Time) time.Time {
+	return openTime.Add(time.Duration(c.Duration) * time.Hour)
 }
