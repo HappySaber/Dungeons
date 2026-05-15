@@ -7,7 +7,6 @@ import (
 	"dungeon/internal/parser"
 	"dungeon/internal/service"
 	"fmt"
-	"io"
 	"os"
 )
 
@@ -42,11 +41,7 @@ func (a *App) ProcessFile(path string) error {
 	}
 	defer file.Close()
 
-	return a.ProcessReader(file)
-}
-
-func (a *App) ProcessReader(r io.Reader) error {
-	scanner := bufio.NewScanner(r)
+	scanner := bufio.NewScanner(file)
 	lineNum := 0
 
 	for scanner.Scan() {
