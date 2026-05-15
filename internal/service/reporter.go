@@ -15,6 +15,9 @@ func NewReporter(dungeon *models.Dungeon) *Reporter {
 	}
 }
 
+// Generate creates a Report for the given Player by analyzing their state, time spent in the dungeon, monsters killed,
+// and other relevant metrics to determine their final outcome (success, fail, or disqualification) and compile all this
+// information into a structured report format
 func (r *Reporter) Generate(player *models.Player) *models.Report {
 	return &models.Report{
 		State:        r.determineState(player),

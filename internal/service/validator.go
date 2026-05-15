@@ -15,6 +15,9 @@ func NewValidator(dungeon *models.Dungeon) *Validator {
 	}
 }
 
+// Validate checks if the given event is valid for the player's current state and the dungeon's rules,
+// returning an error if any validation fails, such as attempting to move to an invalid floor,
+// entering the dungeon when already inside, or killing a monster on the boss floor
 func (v *Validator) Validate(event *models.Event, player *models.Player) error {
 	t := event.Time
 

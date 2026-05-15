@@ -24,6 +24,7 @@ func NewProcessor(dungeon *models.Dungeon) *Processor {
 	}
 }
 
+// ProcessEvent takes an Event, retrieves or creates the corresponding Player, validates the event against the player's current state and the dungeon's rules, and if valid, updates the player's state accordingly while generating output messages for each processed event
 func (p *Processor) ProcessEvent(event *models.Event) {
 	player := p.getOrCreatePlayer(event.PlayerID)
 
@@ -35,6 +36,8 @@ func (p *Processor) ProcessEvent(event *models.Event) {
 	p.handleEvent(event, player)
 }
 
+// getOrCreatePlayer retrieves an existing Player by ID or creates a new one if it doesn't exist,
+// ensuring that all events are associated with a valid Player instance
 func (p *Processor) getOrCreatePlayer(id int) *models.Player {
 	if player, exists := p.players[id]; exists {
 		return player
@@ -45,6 +48,9 @@ func (p *Processor) getOrCreatePlayer(id int) *models.Player {
 	return player
 }
 
+// handleEvent updates the player's state based on the type of event, performing actions such as registering,
+// entering the dungeon, killing monsters, moving floors, and leaving the dungeon,
+// while generating appropriate output messages for each action taken
 func (p *Processor) handleEvent(event *models.Event, player *models.Player) {
 	t := event.Time
 

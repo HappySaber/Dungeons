@@ -15,6 +15,7 @@ type Report struct {
 	FinalHealth  int
 }
 
+// String formats the report data into a human-readable string representation
 func (r Report) String() string {
 	total := r.TotalTime
 

@@ -34,6 +34,7 @@ func New(configPath string) *App {
 	}
 }
 
+// ProcessFile reads events from a file, processes them, and outputs results
 func (a *App) ProcessFile(path string) error {
 	file, err := os.Open(path)
 	if err != nil {

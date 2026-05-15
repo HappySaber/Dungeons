@@ -21,6 +21,7 @@ func New() *EventParser {
 	}
 }
 
+// Parse takes a log line as input and attempts to parse it into an Event struct, returning an error if the format is invalid or if any fields cannot be properly parsed
 func (p *EventParser) Parse(line string) (*models.Event, error) {
 	line = strings.TrimSpace(line)
 

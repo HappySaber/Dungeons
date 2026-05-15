@@ -14,6 +14,7 @@ type Config struct {
 	Duration int    `json:"Duration"`
 }
 
+// Load reads the configuration from a JSON file and validates it
 func Load(path string) (*Config, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -32,6 +33,7 @@ func Load(path string) (*Config, error) {
 	return &cfg, nil
 }
 
+// Validate checks if the configuration values are valid
 func (c *Config) Validate() error {
 	if c.Floors <= 0 {
 		return fmt.Errorf("floors must be > 0, got: %d", c.Floors)
@@ -50,10 +52,12 @@ func (c *Config) Validate() error {
 	return nil
 }
 
+// ParseOpenTime converts the OpenAt string to a time.Time object
 func (c *Config) ParseOpenTime() (time.Time, error) {
 	return time.Parse("15:04:05", c.OpenAt)
 }
 
+// CalculateCloseTime computes the closing time based on the opening time and duration
 func (c *Config) CalculateCloseTime(openTime time.Time) time.Time {
 	return openTime.Add(time.Duration(c.Duration) * time.Hour)
 }
